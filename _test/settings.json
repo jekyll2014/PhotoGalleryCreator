@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": "E:\\WORK\\programming\\c_sharp\\PhotoGalleryCreator\\_test\\Trip",
+      "includeSubfolders": true,
+      "flattenSubfolderImages": false,
+      "ignore": false
+    }
+  ],
+  "template": "template1",
+  "thumbnailSize": 320,
+  "thumbnailQuality": 80,
+  "initialThumbnails": 10,
+  "cacheRadius": 2
+}

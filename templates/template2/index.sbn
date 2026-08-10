@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ folder.title }}</title>
+  <link rel="stylesheet" href="web/style.css">
+</head>
+<body>
+  <header class="gallery-header">
+    <h1>{{ folder.title }}</h1>
+    {{ if folder.description }}<p class="folder-desc">{{ folder.description }}</p>{{ end }}
+  </header>
+
+  <!-- Subfolders: a row of folder cards (rendered by JS) -->
+  <nav class="folders" id="folders" aria-label="Subfolders"></nav>
+
+  <!-- Masonry grid of photo thumbnails (rendered by JS, native lazy-loading) -->
+  <main class="grid" id="grid"></main>
+
+  <!-- Fullscreen lightbox overlay (hidden until a thumbnail is clicked) -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-close" id="lbClose" aria-label="Close">&times;</button>
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">&#10094;</button>
+    <figure class="lb-figure">
+      <img class="lb-img" id="lbImg" alt="">
+      <figcaption class="lb-caption" id="lbCaption"></figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lbNext" aria-label="Next">&#10095;</button>
+  </div>
+
+  <footer class="gallery-footer">
+    <span>{{ folder.name }}</span> &middot; <span>generated {{ generated_at }}</span>
+  </footer>
+
+  <script>window.__GALLERY__ = {{ data_json }};</script>
+  <script src="web/gallery.js"></script>
+</body>
+</html>

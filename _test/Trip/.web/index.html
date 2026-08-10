@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Summer Trip</title>
+  <link rel="stylesheet" href="web/style.css">
+</head>
+<body>
+  <header class="gallery-header">
+    <h1>Summer Trip</h1>
+    <p class="folder-desc">Test gallery</p>
+  </header>
+
+  <!-- Stage: big current image with edge arrows revealed on cursor approach -->
+  <main class="stage" id="stage">
+    <button class="nav-arrow nav-prev" id="navPrev" aria-label="Previous">&#10094;</button>
+    <figure class="stage-figure">
+      <img class="stage-img" id="stageImg" alt="">
+      <figcaption class="stage-caption" id="stageCaption"></figcaption>
+    </figure>
+    <button class="nav-arrow nav-next" id="navNext" aria-label="Next">&#10095;</button>
+  </main>
+
+  <!-- Bottom strip: scrollable thumbnails + folder tiles. Lazy-loads beyond initial count. -->
+  <nav class="strip" id="strip" aria-label="Thumbnails">
+    <div class="strip-track" id="stripTrack"></div>
+  </nav>
+
+  <footer class="gallery-footer">
+    <span>Trip</span> &middot; <span>generated 2026-08-10 11:22</span>
+  </footer>
+
+  <script>window.__GALLERY__ = {"folder":{"name":"Trip","title":"Summer Trip","description":"Test gallery"},"images":[{"fileName":"a.jpg","title":"First Shot","description":"the opener","thumb":"thumbs/a.jpg","full":"../a.jpg","width":800,"height":600,"dateTaken":null,"camera":null},{"fileName":"b.jpg","title":"b","description":null,"thumb":"thumbs/b.jpg","full":"../b.jpg","width":800,"height":600,"dateTaken":null,"camera":null},{"fileName":"c.jpg","title":"c","description":null,"thumb":"thumbs/c.jpg","full":"../c.jpg","width":800,"height":600,"dateTaken":null,"camera":null}],"subfolders":[{"name":"Beach","title":"Beach","link":"../Beach/.web/index.html","thumb":"../Beach/.web/thumbs/d.jpg"}],"settings":{"initialThumbnails":10,"cacheRadius":2},"generatedAt":"2026-08-10 11:22"};</script>
+  <script src="web/gallery.js"></script>
+</body>
+</html>
