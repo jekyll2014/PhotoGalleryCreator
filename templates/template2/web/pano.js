@@ -128,7 +128,8 @@
     var projLoc = gl.getUniformLocation(prog, "proj");
     var viewLoc = gl.getUniformLocation(prog, "view");
 
-    var yaw = 0, pitch = 0, fov = 75, aspect = 1, alive = true, loaded = false;
+    var DEFAULT_FOV = 75, MIN_FOV = 30, MAX_FOV = 100; // zoom limits (field of view, degrees)
+    var yaw = 0, pitch = 0, fov = DEFAULT_FOV, aspect = 1, alive = true, loaded = false;
 
     var img = new Image();
     // No crossOrigin: the gallery is served same-origin as static files. Forcing CORS mode
@@ -184,7 +185,8 @@
     function up() { dragging = false; canvas.style.cursor = "grab"; }
     function px(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
     function py(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-    function wheel(e) { fov = Math.max(30, Math.min(100, fov + (e.deltaY > 0 ? 4 : -4))); e.preventDefault(); }
+    function wheel(e) { fov = Math.max(MIN_FOV, Math.min(MAX_FOV, fov + (e.deltaY > 0 ? 4 : -4))); e.preventDefault(); }
+    function reset(e) { yaw = 0; pitch = 0; fov = DEFAULT_FOV; if (e) e.preventDefault(); }
 
     canvas.addEventListener("mousedown", down);
     window.addEventListener("mousemove", move);
@@ -193,6 +195,7 @@
     canvas.addEventListener("touchmove", move, { passive: false });
     canvas.addEventListener("touchend", up);
     canvas.addEventListener("wheel", wheel, { passive: false });
+    canvas.addEventListener("dblclick", reset); // double-click resets the view
 
     return {
       destroy: function () {
