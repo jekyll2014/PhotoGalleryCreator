@@ -24,6 +24,7 @@
     <button class="lb-nav lb-prev" id="lbPrev" aria-label="Previous">&#10094;</button>
     <figure class="lb-figure">
       <img class="lb-img" id="lbImg" alt="">
+      <div class="lb-pano" id="lbPano" aria-label="360° panorama"></div>
       <figcaption class="lb-caption" id="lbCaption"></figcaption>
     </figure>
     <button class="lb-nav lb-next" id="lbNext" aria-label="Next">&#10095;</button>
@@ -34,6 +35,7 @@
   </footer>
 
   <script>window.__GALLERY__ = {{ data_json }};</script>
+  <script src="web/pano.js"></script>
   <script src="web/gallery.js"></script>
 </body>
 </html>

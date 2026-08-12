@@ -44,6 +44,10 @@ public sealed class GalleryImage
     public int Height { get; init; }
     public string? DateTaken { get; init; }
     public string? Camera { get; init; }
+
+    /// <summary>True for spherical (equirectangular) panoramas — templates can open these in a
+    /// 360° viewer instead of showing a flat image.</summary>
+    public bool Is360 { get; init; }
 }
 
 /// <summary>A subfolder tile rendered as a folder icon in the image strip.</summary>

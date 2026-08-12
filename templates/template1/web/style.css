@@ -62,6 +62,32 @@ body {
   -webkit-user-drag: none;
 }
 .stage-img.loading { opacity: 0.35; }
+
+/* 360° panorama viewer surface on the stage (WebGL canvas is injected here) */
+.stage-pano {
+  display: none;
+  width: min(92vw, 1600px);
+  height: calc(100vh - var(--strip-h) - 140px);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #0c0e12;
+}
+.stage-pano.active { display: block; }
+
+/* 360° badge on panorama thumbnails */
+.tile .badge-360 {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 2;
+}
 .stage-caption {
   margin-top: 8px;
   color: var(--muted);

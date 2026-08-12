@@ -113,7 +113,10 @@ public sealed class GalleryGenerator
                 Width = w,
                 Height = h,
                 DateTaken = meta.DateTaken,
-                Camera = meta.Camera
+                Camera = meta.Camera,
+                // GPano XMP is authoritative; fall back to an exact 2:1 equirectangular ratio
+                // for large images that carry no metadata.
+                Is360 = meta.Is360 || (w >= 2048 && h > 0 && Math.Abs((double)w / h - 2.0) < 0.02)
             });
 
             firstThumbAbs ??= thumbAbs;

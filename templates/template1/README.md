@@ -12,7 +12,21 @@ template1/
   index.sbn      HTML shell + the data island <script>window.__GALLERY__ = {{ data_json }}</script>
   web/style.css  layout + theming (copied to <folder>/.web/web/style.css)
   web/gallery.js  all runtime behaviour (copied to <folder>/.web/web/gallery.js)
+  web/pano.js    dependency-free WebGL viewer for 360° spherical panoramas
 ```
+
+## 360° spherical panoramas
+
+Images the generator flags as `is360` (Google Photo Sphere / GPano XMP tags, or a 2:1
+equirectangular ratio) get a **360°** badge on their strip thumbnail, and the stage mounts an
+interactive WebGL sphere viewer (`pano.js`) instead of the flat image:
+
+- drag (mouse or touch) to look around, wheel / pinch to zoom the field of view,
+- the edge arrows and keyboard still move between images; stage swipe-nav is suspended while a
+  360 is showing (the viewer owns drag),
+- panoramas are excluded from the neighbour cache (they are large — loaded on open).
+
+Self-contained (no three.js / external assets); downscales to the GPU max texture size.
 
 `index.sbn` is intentionally thin: it renders the header/footer and the empty stage + strip
 containers, then hands the image/subfolder data to `gallery.js` via the JSON island. All the

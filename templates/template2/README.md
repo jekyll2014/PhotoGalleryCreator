@@ -13,9 +13,24 @@ See `../README.md` for the placeholder/data-island contract shared by all templa
 ```
 template2/
   index.sbn      header + #folders row + #grid + hidden #lightbox overlay + data island
-  web/style.css  masonry columns, folder cards, lightbox
+  web/style.css  masonry columns, folder cards, lightbox, 360 badge
   web/gallery.js  grid build + lightbox behaviour
+  web/pano.js    dependency-free WebGL viewer for 360° spherical panoramas
 ```
+
+## 360° spherical panoramas
+
+Images the generator flags as `is360` (via Google Photo Sphere / GPano XMP tags, or a 2:1
+equirectangular aspect ratio) get a **360°** badge on their grid cell and open in an
+interactive WebGL sphere viewer (`pano.js`) instead of a flat image:
+
+- drag (mouse or touch) to look around, wheel / pinch to zoom the field of view,
+- prev/next and keyboard still move between images; swipe-nav is suspended while a 360 is open
+  (the viewer owns drag),
+- panoramas are excluded from the flat-image neighbour cache (they are large — loaded on open).
+
+The viewer is self-contained (no three.js, no external assets) and downscales the source to
+the GPU's max texture size when needed, so it stays fully static.
 
 ## Behaviour (gallery.js)
 

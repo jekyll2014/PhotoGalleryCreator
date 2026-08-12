@@ -17,6 +17,7 @@
     <button class="nav-arrow nav-prev" id="navPrev" aria-label="Previous">&#10094;</button>
     <figure class="stage-figure">
       <img class="stage-img" id="stageImg" alt="">
+      <div class="stage-pano" id="stagePano" aria-label="360° panorama"></div>
       <figcaption class="stage-caption" id="stageCaption"></figcaption>
     </figure>
     <button class="nav-arrow nav-next" id="navNext" aria-label="Next">&#10095;</button>
@@ -32,6 +33,7 @@
   </footer>
 
   <script>window.__GALLERY__ = {{ data_json }};</script>
+  <script src="web/pano.js"></script>
   <script src="web/gallery.js"></script>
 </body>
 </html>

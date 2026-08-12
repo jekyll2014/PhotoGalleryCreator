@@ -95,6 +95,22 @@ body {
 }
 .cell:hover .cell-title { opacity: 1; }
 
+/* 360° badge on panorama cells */
+.badge-360 {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  z-index: 2;
+}
+
 /* ---- Lightbox ---- */
 .lightbox {
   position: fixed;
@@ -125,6 +141,17 @@ body {
   -webkit-user-drag: none;
 }
 .lb-img.loading { opacity: 0.35; }
+
+/* 360° panorama viewer surface (WebGL canvas is injected here) */
+.lb-pano {
+  display: none;
+  width: min(94vw, 1600px);
+  height: 82vh;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #14181e;
+}
+.lb-pano.active { display: block; }
 .lb-caption {
   margin-top: 10px;
   color: #cfd3da;

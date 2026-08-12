@@ -93,4 +93,5 @@ found at runtime.
   (swipe / arrows / keyboard, Esc or backdrop to close); subfolders shown first as a row
   of cards. Good for browsing a whole folder at a glance.
 
-In both, subfolders always appear first.
+In both, subfolders always appear first, and equirectangular 360° panoramas (`is360`) open in
+a dependency-free WebGL sphere viewer (`web/pano.js`) with a **360°** badge on their thumbnail.

@@ -22,6 +22,7 @@
 
   var stage = document.getElementById("stage");
   var stageImg = document.getElementById("stageImg");
+  var stagePano = document.getElementById("stagePano");
   var caption = document.getElementById("stageCaption");
   var track = document.getElementById("stripTrack");
   var strip = document.getElementById("strip");
@@ -32,6 +33,7 @@
   var loadedThumbs = 0;      // count of image tiles rendered so far
   var tileEls = [];          // image tile elements by image index
   var cache = {};            // index -> preloaded Image (neighbour cache)
+  var pano = null;           // active 360 viewer handle, if any
 
   if (images.length === 0 && subfolders.length === 0) {
     caption.textContent = "No images in this folder.";
@@ -80,6 +82,12 @@
     im.src = img.thumb;
     im.alt = img.title || img.fileName;
     el.appendChild(im);
+    if (img.is360) {
+      var badge = document.createElement("span");
+      badge.className = "badge-360";
+      badge.textContent = "360°";
+      el.appendChild(badge);
+    }
     el.addEventListener("click", function () { select(index); });
     el.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(index); }
@@ -112,6 +120,7 @@
     var lo = Math.max(0, index - RADIUS);
     var hi = Math.min(images.length - 1, index + RADIUS);
     for (var i = lo; i <= hi; i++) {
+      if (images[i].is360) continue; // panoramas are huge; the viewer loads them on open
       if (!cache[i]) {
         var pre = new Image();
         pre.src = images[i].full;
@@ -127,16 +136,27 @@
 
   // ---- Selection / stage ----------------------------------------------------
 
+  function destroyPano() {
+    if (pano) { pano.destroy(); pano = null; }
+    stagePano.classList.remove("active");
+  }
+
   function select(index) {
     if (images.length === 0) return;
     index = Math.max(0, Math.min(images.length - 1, index));
     current = index;
     var img = images[index];
+    destroyPano();
 
-    stageImg.classList.add("loading");
-    stageImg.onload = function () { stageImg.classList.remove("loading"); };
-    stageImg.src = (cache[index] && cache[index].src) || img.full;
-    stageImg.alt = img.title || img.fileName;
+    if (img.is360 && window.PanoViewer) {
+      // Spherical panorama: hide the flat <img>, mount the WebGL sphere viewer on the stage.
+      stageImg.style.display = "none";
+      stagePano.classList.add("active");
+      try { pano = window.PanoViewer.mount(stagePano, img.full); }
+      catch (err) { stageImg.style.display = ""; stagePano.classList.remove("active"); showFlat(img, index); }
+    } else {
+      showFlat(img, index);
+    }
 
     var meta = [];
     if (img.dateTaken) meta.push(img.dateTaken);
@@ -150,6 +170,14 @@
     ensureThumbs(index + 1);
     markActive(index);
     preloadNeighbours(index);
+  }
+
+  function showFlat(img, index) {
+    stageImg.style.display = "";
+    stageImg.classList.add("loading");
+    stageImg.onload = function () { stageImg.classList.remove("loading"); };
+    stageImg.src = (cache[index] && cache[index].src) || img.full;
+    stageImg.alt = img.title || img.fileName;
   }
 
   function markActive(index) {
@@ -189,6 +217,7 @@
   var dragX = null, dragging = false;
   stage.addEventListener("pointerdown", function (e) {
     if (e.target === btnPrev || e.target === btnNext) return;
+    if (pano) return; // 360 viewer owns drag-to-look; don't hijack it for swipe-nav
     dragX = e.clientX; dragging = true;
   });
   stage.addEventListener("pointerup", function (e) {

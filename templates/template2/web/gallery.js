@@ -26,9 +26,11 @@
   var lbPrev = document.getElementById("lbPrev");
   var lbNext = document.getElementById("lbNext");
   var lbClose = document.getElementById("lbClose");
+  var lbPano = document.getElementById("lbPano");
 
   var current = -1;
-  var cache = {}; // index -> preloaded Image
+  var cache = {};   // index -> preloaded Image
+  var pano = null;  // active 360 viewer handle, if any
 
   // ---- Subfolders first ------------------------------------------------------
 
@@ -72,6 +74,13 @@
     if (img.width && img.height) { im.width = img.width; im.height = img.height; }
     cell.appendChild(im);
 
+    if (img.is360) {
+      var badge = document.createElement("span");
+      badge.className = "badge-360";
+      badge.textContent = "360°";
+      cell.appendChild(badge);
+    }
+
     if (img.title) {
       var cap = document.createElement("figcaption");
       cap.className = "cell-title";
@@ -92,6 +101,7 @@
     var lo = Math.max(0, index - RADIUS);
     var hi = Math.min(images.length - 1, index + RADIUS);
     for (var i = lo; i <= hi; i++) {
+      if (images[i].is360) continue; // panoramas are huge; the viewer loads them on open
       if (!cache[i]) { var p = new Image(); p.src = images[i].full; cache[i] = p; }
     }
     Object.keys(cache).forEach(function (k) {
@@ -103,25 +113,55 @@
 
   function open(index) {
     current = Math.max(0, Math.min(images.length - 1, index));
-    show();
+    // Make the lightbox visible FIRST so the pano container has real dimensions when the
+    // WebGL viewer measures it (a hidden container would size the canvas to 1x1).
     lb.classList.add("open");
     lb.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    show();
   }
 
   function close() {
+    destroyPano();
     lb.classList.remove("open");
     lb.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
   }
 
+  function destroyPano() {
+    if (pano) { pano.destroy(); pano = null; }
+    lbPano.classList.remove("active");
+  }
+
   function show() {
     var img = images[current];
+    destroyPano();
+
+    if (img.is360 && window.PanoViewer) {
+      // Spherical panorama: hide the flat <img>, mount the WebGL sphere viewer.
+      lbImg.style.display = "none";
+      lbPano.classList.add("active");
+      try { pano = window.PanoViewer.mount(lbPano, img.full); }
+      catch (err) { lbImg.style.display = ""; lbPano.classList.remove("active"); showFlat(img); }
+    } else {
+      showFlat(img);
+    }
+
+    setCaption(img);
+    lbPrev.style.visibility = current > 0 ? "visible" : "hidden";
+    lbNext.style.visibility = current < images.length - 1 ? "visible" : "hidden";
+    preloadNeighbours(current);
+  }
+
+  function showFlat(img) {
+    lbImg.style.display = "";
     lbImg.classList.add("loading");
     lbImg.onload = function () { lbImg.classList.remove("loading"); };
     lbImg.src = (cache[current] && cache[current].src) || img.full;
     lbImg.alt = img.title || img.fileName;
+  }
 
+  function setCaption(img) {
     var meta = [];
     if (img.dateTaken) meta.push(img.dateTaken);
     if (img.camera) meta.push(img.camera);
@@ -130,10 +170,6 @@
     var desc = img.description ? " " + esc(img.description) : "";
     var metaStr = meta.length ? " — " + esc(meta.join(" · ")) : "";
     lbCaption.innerHTML = title + desc + metaStr;
-
-    lbPrev.style.visibility = current > 0 ? "visible" : "hidden";
-    lbNext.style.visibility = current < images.length - 1 ? "visible" : "hidden";
-    preloadNeighbours(current);
   }
 
   function next() { if (current < images.length - 1) { current++; show(); } }
@@ -159,6 +195,7 @@
   var dragX = null, dragging = false;
   lb.addEventListener("pointerdown", function (e) {
     if (e.target === lbPrev || e.target === lbNext || e.target === lbClose) return;
+    if (pano) return; // 360 viewer owns drag-to-look; don't hijack it for swipe-nav
     dragX = e.clientX; dragging = true;
   });
   lb.addEventListener("pointerup", function (e) {
