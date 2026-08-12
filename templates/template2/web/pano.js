@@ -175,8 +175,8 @@
     function move(e) {
       if (!dragging) return;
       var x = px(e), y = py(e);
-      yaw += (x - lx) * 0.005;
-      pitch += (y - ly) * 0.005;
+      yaw -= (x - lx) * 0.005;
+      pitch -= (y - ly) * 0.005;
       var lim = Math.PI / 2 - 0.01;
       if (pitch > lim) pitch = lim; if (pitch < -lim) pitch = -lim;
       lx = x; ly = y;
