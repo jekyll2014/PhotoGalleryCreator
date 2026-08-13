@@ -51,6 +51,8 @@ folder itself (its `.web/index.html` links `../<image>`).
   "thumbnailQuality": 80,               // JPEG quality 1-100
   "initialThumbnails": 10,              // thumbs loaded up front; rest lazy-load
   "cacheRadius": 2,                     // neighbours cached each side (2 => 5 images warm)
+  "sort": "name",                       // name | date | size | modified (applied at generation)
+  "sortDescending": false,              // reverse the sort order
   "imageExtensions": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tif", ".tiff"]
 }
 ```

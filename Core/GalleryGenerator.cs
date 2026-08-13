@@ -54,6 +54,7 @@ public sealed class GalleryGenerator
 
         var scanner = new Scanner(settings.ImageExtensions);
         var scan = scanner.Scan(folderPath, entry);
+        SortImages(scan.ImageFiles, settings.Sort, settings.SortDescending);
         var desc = FolderDescription.TryLoad(folderPath);
 
         var webDir = Path.Combine(folderPath, ".web");
@@ -164,6 +165,8 @@ public sealed class GalleryGenerator
                 InitialThumbnails = o.InitialThumbnails,
                 CacheRadius = o.CacheRadius,
                 ImageExtensions = o.ImageExtensions.Count > 0 ? o.ImageExtensions : inherited.ImageExtensions,
+                Sort = o.Sort,
+                SortDescending = o.SortDescending,
                 Title = o.Title ?? inherited.Title,
                 Description = o.Description ?? inherited.Description
             };
@@ -172,6 +175,42 @@ public sealed class GalleryGenerator
         {
             return inherited;
         }
+    }
+
+    /// <summary>Orders a folder's image paths in place per the settings. Sorting is stable on the
+    /// scanner's name order, so equal keys keep a deterministic sequence.</summary>
+    private static void SortImages(List<string> files, SortMode mode, bool descending)
+    {
+        if (mode == SortMode.Name && !descending) return; // scanner already yields name-ascending
+
+        IEnumerable<string> ordered = mode switch
+        {
+            SortMode.Date => files.OrderBy(SortDate),
+            SortMode.Size => files.OrderBy(f => SafeLength(f)),
+            SortMode.Modified => files.OrderBy(f => File.GetLastWriteTimeUtc(f)),
+            _ => files.OrderBy(f => Path.GetFileName(f), StringComparer.OrdinalIgnoreCase)
+        };
+        if (descending) ordered = ordered.Reverse();
+
+        var sorted = ordered.ToList();
+        files.Clear();
+        files.AddRange(sorted);
+    }
+
+    private static DateTime SortDate(string path)
+    {
+        var d = MetadataReader.Read(path).DateTaken;
+        // EXIF DateTimeOriginal is "yyyy:MM:dd HH:mm:ss"; fall back to file modified time.
+        if (!string.IsNullOrEmpty(d) &&
+            DateTime.TryParseExact(d, "yyyy:MM:dd HH:mm:ss", null,
+                System.Globalization.DateTimeStyles.None, out var parsed))
+            return parsed;
+        return File.GetLastWriteTimeUtc(path);
+    }
+
+    private static long SafeLength(string path)
+    {
+        try { return new FileInfo(path).Length; } catch { return 0; }
     }
 
     private void RenderTemplate(string templateName, GalleryModel model, string webDir)

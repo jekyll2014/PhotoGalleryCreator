@@ -28,6 +28,12 @@ public sealed class AppSettings
     /// <summary>Neighbour images kept warm each side of the current one (2 =&gt; caches 5).</summary>
     public int CacheRadius { get; set; } = 2;
 
+    /// <summary>How images are ordered within each folder at generation time.</summary>
+    public SortMode Sort { get; set; } = SortMode.Name;
+
+    /// <summary>Reverse the sort order when set.</summary>
+    public bool SortDescending { get; set; }
+
     /// <summary>Recognised image file extensions (lowercase, with dot).</summary>
     public List<string> ImageExtensions { get; set; } = new()
     {
@@ -55,4 +61,17 @@ public sealed class AppSettings
 
     public void Save(string path)
         => File.WriteAllText(path, JsonSerializer.Serialize(this, JsonOptions));
+}
+
+/// <summary>Ordering applied to a folder's images at generation time.</summary>
+public enum SortMode
+{
+    /// <summary>By file name (ordinal, case-insensitive). Default.</summary>
+    Name,
+    /// <summary>By capture date (EXIF DateTimeOriginal; falls back to file modified time).</summary>
+    Date,
+    /// <summary>By file size in bytes.</summary>
+    Size,
+    /// <summary>By file last-modified time.</summary>
+    Modified
 }
