@@ -77,11 +77,13 @@
     return c;
   }
 
-  function mount(container, imageUrl) {
+  function mount(container, imageUrl, opts) {
+    opts = opts || {};
     var canvas = document.createElement("canvas");
     canvas.className = "pano-canvas";
     canvas.style.cssText = "width:100%;height:100%;display:block;cursor:grab;touch-action:none;";
     container.appendChild(canvas);
+    if (getComputedStyle(container).position === "static") container.style.position = "relative";
 
     var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
     if (!gl) { container.removeChild(canvas); throw new Error("WebGL unavailable"); }
@@ -129,7 +131,9 @@
     var viewLoc = gl.getUniformLocation(prog, "view");
 
     var DEFAULT_FOV = 75, MIN_FOV = 30, MAX_FOV = 100; // zoom limits (field of view, degrees)
+    var DEG = Math.PI / 180, SPIN_SPEED = 0.0016;
     var yaw = 0, pitch = 0, fov = DEFAULT_FOV, aspect = 1, alive = true, loaded = false;
+    var autospin = !!opts.autospin, gyroOn = false;
 
     var img = new Image();
     // No crossOrigin: the gallery is served same-origin as static files. Forcing CORS mode
@@ -160,6 +164,7 @@
 
     function render() {
       if (!alive) return;
+      if (autospin && !dragging && !gyroOn) yaw += SPIN_SPEED;
       gl.clear(gl.COLOR_BUFFER_BIT);
       if (loaded) {
         gl.uniformMatrix4fv(projLoc, false, new Float32Array(perspective(fov, aspect, 0.1, 10)));
@@ -197,6 +202,61 @@
     canvas.addEventListener("wheel", wheel, { passive: false });
     canvas.addEventListener("dblclick", reset); // double-click resets the view
 
+    // ---- on-viewer controls: auto-spin + gyro ----
+    var ON = "rgba(77,163,255,0.85)", OFF = "rgba(0,0,0,0.5)";
+    var controls = document.createElement("div");
+    controls.className = "pano-controls";
+    controls.style.cssText = "position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:3;";
+
+    function ctrlBtn(label, title) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = label; b.title = title;
+      b.style.cssText = "width:34px;height:34px;border:0;border-radius:8px;cursor:pointer;" +
+        "background:" + OFF + ";color:#fff;font-size:16px;line-height:1;";
+      return b;
+    }
+
+    var spinBtn = ctrlBtn("⟳", "Toggle auto-spin");
+    if (autospin) spinBtn.style.background = ON;
+    spinBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      autospin = !autospin;
+      spinBtn.style.background = autospin ? ON : OFF;
+    });
+    controls.appendChild(spinBtn);
+
+    // Approximate device-orientation look-around (yaw from compass, pitch from tilt).
+    function onOrient(ev) {
+      if (ev.alpha == null) return;
+      yaw = -ev.alpha * DEG;
+      var p = (ev.beta - 90) * DEG, lim = Math.PI / 2 - 0.01;
+      pitch = p > lim ? lim : (p < -lim ? -lim : p);
+    }
+    var gyroBtn = null;
+    if (typeof window.DeviceOrientationEvent !== "undefined") {
+      gyroBtn = ctrlBtn("⟟", "Toggle gyroscope");
+      gyroBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (gyroOn) {
+          gyroOn = false; gyroBtn.style.background = OFF;
+          window.removeEventListener("deviceorientation", onOrient);
+          return;
+        }
+        var start = function () {
+          gyroOn = true; gyroBtn.style.background = ON;
+          window.addEventListener("deviceorientation", onOrient);
+        };
+        // iOS 13+ requires a permission request from a user gesture.
+        if (typeof DeviceOrientationEvent.requestPermission === "function") {
+          DeviceOrientationEvent.requestPermission()
+            .then(function (s) { if (s === "granted") start(); })
+            .catch(function () {});
+        } else { start(); }
+      });
+      controls.appendChild(gyroBtn);
+    }
+    container.appendChild(controls);
+
     return {
       destroy: function () {
         alive = false;
@@ -205,6 +265,8 @@
         window.removeEventListener("resize", resize);
         window.removeEventListener("mousemove", move);
         window.removeEventListener("mouseup", up);
+        window.removeEventListener("deviceorientation", onOrient);
+        if (controls.parentNode) controls.parentNode.removeChild(controls);
         gl.deleteTexture(tex);
         gl.deleteBuffer(pBuf); gl.deleteBuffer(uBuf); gl.deleteBuffer(iBuf);
         gl.deleteProgram(prog);
