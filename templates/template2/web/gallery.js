@@ -155,6 +155,7 @@
 
   function showFlat(img) {
     lbImg.style.display = "";
+    resetZoom();
     lbImg.classList.add("loading");
     lbImg.onload = function () { lbImg.classList.remove("loading"); };
     lbImg.src = (cache[current] && cache[current].src) || img.full;
@@ -191,17 +192,53 @@
     else if (e.key === "ArrowLeft") prev();
   });
 
-  // Swipe / drag inside the lightbox.
-  var dragX = null, dragging = false;
+  // ---- Flat-image zoom (max 2:1) + pan, plus swipe-nav when not zoomed ----
+  var MAX_ZOOM = 2, zoom = 1, panX = 0, panY = 0;
+
+  function applyZoom() {
+    lbImg.style.transformOrigin = "center center";
+    lbImg.style.transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
+    lbImg.style.cursor = zoom > 1 ? "grab" : "";
+  }
+  function resetZoom() { zoom = 1; panX = 0; panY = 0; applyZoom(); }
+  function clampPan() {
+    var mx = lbImg.offsetWidth * (zoom - 1) / 2;
+    var my = lbImg.offsetHeight * (zoom - 1) / 2;
+    panX = Math.max(-mx, Math.min(mx, panX));
+    panY = Math.max(-my, Math.min(my, panY));
+  }
+
+  lb.addEventListener("wheel", function (e) {
+    if (pano) return; // 360 viewer handles its own zoom
+    e.preventDefault();
+    zoom = Math.min(MAX_ZOOM, Math.max(1, zoom + (e.deltaY > 0 ? -0.2 : 0.2)));
+    if (zoom === 1) { panX = 0; panY = 0; }
+    clampPan(); applyZoom();
+  }, { passive: false });
+
+  lbImg.addEventListener("dblclick", function (e) {
+    e.preventDefault(); e.stopPropagation();
+    if (zoom > 1) resetZoom(); else { zoom = MAX_ZOOM; applyZoom(); }
+  });
+
+  // Drag: pans when zoomed, otherwise a swipe navigates.
+  var downX = 0, dragX = 0, dragY = 0, dragging = false;
   lb.addEventListener("pointerdown", function (e) {
     if (e.target === lbPrev || e.target === lbNext || e.target === lbClose) return;
-    if (pano) return; // 360 viewer owns drag-to-look; don't hijack it for swipe-nav
-    dragX = e.clientX; dragging = true;
+    if (pano) return; // 360 viewer owns drag-to-look
+    downX = e.clientX; dragX = e.clientX; dragY = e.clientY; dragging = true;
+  });
+  lb.addEventListener("pointermove", function (e) {
+    if (!dragging || zoom <= 1) return;
+    panX += e.clientX - dragX; panY += e.clientY - dragY;
+    dragX = e.clientX; dragY = e.clientY;
+    clampPan(); applyZoom();
   });
   lb.addEventListener("pointerup", function (e) {
     if (!dragging) return;
     dragging = false;
-    var dx = e.clientX - dragX;
+    if (zoom > 1) return; // was panning, not a swipe
+    var dx = e.clientX - downX;
     if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
   });
   lb.addEventListener("pointercancel", function () { dragging = false; });

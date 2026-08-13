@@ -45,6 +45,8 @@ the GPU's max texture size when needed, so it stays fully static.
   (finger on mobile, mouse on desktop) inside the lightbox.
 - **Captions** — hover shows the title over a cell; the lightbox shows
   `title description — dateTaken · camera · WxH` (from `.web/description.json` + EXIF).
+- **Zoom** — flat images zoom with the wheel up to 2:1; drag to pan while zoomed,
+  double-click to toggle/reset. Swipe-nav is suspended while zoomed. (360s zoom via FOV.)
 
 Note: `initialThumbnails` is not used here — the grid renders all cells and relies on native
 lazy-loading. `cacheRadius` still controls lightbox preloading.

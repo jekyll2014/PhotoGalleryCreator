@@ -174,6 +174,7 @@
 
   function showFlat(img, index) {
     stageImg.style.display = "";
+    resetZoom();
     stageImg.classList.add("loading");
     stageImg.onload = function () { stageImg.classList.remove("loading"); };
     stageImg.src = (cache[index] && cache[index].src) || img.full;
@@ -213,17 +214,53 @@
     stage.classList.remove("show-prev", "show-next");
   });
 
-  // Swipe / drag on the stage.
-  var dragX = null, dragging = false;
+  // ---- Flat-image zoom (max 2:1) + pan, plus swipe-nav when not zoomed ----
+  var MAX_ZOOM = 2, zoom = 1, panX = 0, panY = 0;
+
+  function applyZoom() {
+    stageImg.style.transformOrigin = "center center";
+    stageImg.style.transform = "translate(" + panX + "px," + panY + "px) scale(" + zoom + ")";
+    stageImg.style.cursor = zoom > 1 ? "grab" : "";
+  }
+  function resetZoom() { zoom = 1; panX = 0; panY = 0; applyZoom(); }
+  function clampPan() {
+    var mx = stageImg.offsetWidth * (zoom - 1) / 2;
+    var my = stageImg.offsetHeight * (zoom - 1) / 2;
+    panX = Math.max(-mx, Math.min(mx, panX));
+    panY = Math.max(-my, Math.min(my, panY));
+  }
+
+  stage.addEventListener("wheel", function (e) {
+    if (pano) return; // 360 viewer handles its own zoom
+    e.preventDefault();
+    zoom = Math.min(MAX_ZOOM, Math.max(1, zoom + (e.deltaY > 0 ? -0.2 : 0.2)));
+    if (zoom === 1) { panX = 0; panY = 0; }
+    clampPan(); applyZoom();
+  }, { passive: false });
+
+  stageImg.addEventListener("dblclick", function (e) {
+    e.preventDefault();
+    if (zoom > 1) resetZoom(); else { zoom = MAX_ZOOM; applyZoom(); }
+  });
+
+  // Drag: pans when zoomed, otherwise a swipe navigates.
+  var downX = 0, dragX = 0, dragY = 0, dragging = false;
   stage.addEventListener("pointerdown", function (e) {
     if (e.target === btnPrev || e.target === btnNext) return;
-    if (pano) return; // 360 viewer owns drag-to-look; don't hijack it for swipe-nav
-    dragX = e.clientX; dragging = true;
+    if (pano) return; // 360 viewer owns drag-to-look
+    downX = e.clientX; dragX = e.clientX; dragY = e.clientY; dragging = true;
+  });
+  stage.addEventListener("pointermove", function (e) {
+    if (!dragging || zoom <= 1) return;
+    panX += e.clientX - dragX; panY += e.clientY - dragY;
+    dragX = e.clientX; dragY = e.clientY;
+    clampPan(); applyZoom();
   });
   stage.addEventListener("pointerup", function (e) {
     if (!dragging) return;
     dragging = false;
-    var dx = e.clientX - dragX;
+    if (zoom > 1) return; // was panning, not a swipe
+    var dx = e.clientX - downX;
     if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
   });
   stage.addEventListener("pointercancel", function () { dragging = false; });

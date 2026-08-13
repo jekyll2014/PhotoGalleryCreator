@@ -48,6 +48,8 @@ list building happens client-side so the HTML stays tiny regardless of image cou
   faint preview cover), pointing at each subfolder's own `.web/index.html`.
 - **Captions** — `<b>title</b> description — dateTaken · camera · WxH`, from
   `.web/description.json` + EXIF.
+- **Zoom** — flat images zoom with the wheel up to 2:1; drag to pan while zoomed,
+  double-click to toggle/reset. Swipe-nav is suspended while zoomed. (360s zoom via FOV.)
 
 ## DOM contract
 
