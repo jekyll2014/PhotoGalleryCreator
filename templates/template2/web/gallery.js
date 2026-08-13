@@ -218,18 +218,22 @@
 
   lbImg.addEventListener("dblclick", function (e) {
     e.preventDefault(); e.stopPropagation();
+    cancelTap();
     if (zoom > 1) resetZoom(); else { zoom = MAX_ZOOM; applyZoom(); }
   });
 
   // Drag: pans when zoomed, otherwise a swipe navigates.
-  var downX = 0, dragX = 0, dragY = 0, dragging = false;
+  var downX = 0, downY = 0, dragX = 0, dragY = 0, dragging = false, moved = false;
   lb.addEventListener("pointerdown", function (e) {
     if (e.target === lbPrev || e.target === lbNext || e.target === lbClose) return;
     if (pano) return; // 360 viewer owns drag-to-look
-    downX = e.clientX; dragX = e.clientX; dragY = e.clientY; dragging = true;
+    downX = e.clientX; downY = e.clientY; dragX = e.clientX; dragY = e.clientY;
+    dragging = true; moved = false;
   });
   lb.addEventListener("pointermove", function (e) {
-    if (!dragging || zoom <= 1) return;
+    if (!dragging) return;
+    if (Math.abs(e.clientX - downX) > 8 || Math.abs(e.clientY - downY) > 8) moved = true;
+    if (zoom <= 1) return;
     panX += e.clientX - dragX; panY += e.clientY - dragY;
     dragX = e.clientX; dragY = e.clientY;
     clampPan(); applyZoom();
@@ -242,6 +246,25 @@
     if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
   });
   lb.addEventListener("pointercancel", function () { dragging = false; });
+
+  // ---- Click the image to toggle browser fullscreen (nav still works there) ----
+  var tapTimer = null;
+  function cancelTap() { if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; } }
+  function tapFullscreen() {
+    if (moved || tapTimer) return; // ignore drags / the second click of a dbl-click
+    tapTimer = setTimeout(function () { tapTimer = null; toggleFullscreen(lb); }, 250);
+  }
+  lbImg.addEventListener("click", function (e) { e.stopPropagation(); tapFullscreen(); });
+  lbPano.addEventListener("click", function (e) { e.stopPropagation(); tapFullscreen(); });
+  lbPano.addEventListener("dblclick", cancelTap); // pano dbl-click resets its own view
+
+  function toggleFullscreen(el) {
+    var d = document;
+    var cur = d.fullscreenElement || d.webkitFullscreenElement;
+    var fn = cur ? (d.exitFullscreen || d.webkitExitFullscreen).call(d)
+                 : (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    if (fn && fn.catch) fn.catch(function () {}); // ignore if the browser blocks fullscreen
+  }
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {

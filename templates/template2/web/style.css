@@ -152,6 +152,10 @@ body {
   background: #14181e;
 }
 .lb-pano.active { display: block; }
+
+/* Fullscreen (click the image): give the 360 surface the full height */
+.lightbox:fullscreen .lb-pano { height: 92vh; }
+.lightbox:fullscreen .lb-img { max-height: 94vh; }
 .lb-caption {
   margin-top: 10px;
   color: #cfd3da;

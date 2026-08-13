@@ -50,6 +50,8 @@ list building happens client-side so the HTML stays tiny regardless of image cou
   `.web/description.json` + EXIF.
 - **Zoom** — flat images zoom with the wheel up to 2:1; drag to pan while zoomed,
   double-click to toggle/reset. Swipe-nav is suspended while zoomed. (360s zoom via FOV.)
+- **Fullscreen** — single-click the image to toggle browser fullscreen; prev/next
+  (arrows, keyboard, swipe) keep working there. Double-click is reserved for zoom.
 
 ## DOM contract
 

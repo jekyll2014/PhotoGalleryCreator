@@ -47,6 +47,8 @@ the GPU's max texture size when needed, so it stays fully static.
   `title description — dateTaken · camera · WxH` (from `.web/description.json` + EXIF).
 - **Zoom** — flat images zoom with the wheel up to 2:1; drag to pan while zoomed,
   double-click to toggle/reset. Swipe-nav is suspended while zoomed. (360s zoom via FOV.)
+- **Fullscreen** — single-click the lightbox image to toggle browser fullscreen; prev/next
+  (arrows, keyboard, swipe) keep working there. Double-click is reserved for zoom.
 
 Note: `initialThumbnails` is not used here — the grid renders all cells and relies on native
 lazy-loading. `cacheRadius` still controls lightbox preloading.
