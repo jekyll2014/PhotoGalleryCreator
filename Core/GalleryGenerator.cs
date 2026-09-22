@@ -16,12 +16,14 @@ public sealed class GalleryGenerator
     private readonly AppSettings _appSettings;
     private readonly string _templatesRoot;
     private readonly string _generatedAt;
+    private readonly bool _force;
 
-    public GalleryGenerator(AppSettings appSettings, string templatesRoot)
+    public GalleryGenerator(AppSettings appSettings, string templatesRoot, bool force = false)
     {
         _appSettings = appSettings;
         _templatesRoot = templatesRoot;
         _generatedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+        _force = force;
     }
 
     private static readonly System.Text.Json.JsonSerializerOptions JsIslandOptions = new()
@@ -47,7 +49,7 @@ public sealed class GalleryGenerator
 
     /// <summary>Generates one folder gallery (recursing into subfolders first). Returns the
     /// path of the first thumbnail produced, for use as the parent's preview tile.</summary>
-    private string? GenerateFolder(string folderPath, FolderEntry entry, AppSettings inherited)
+    private string? GenerateFolder(string folderPath, FolderEntry entry, AppSettings inherited, bool isSubfolder = false)
     {
         // Effective settings = inherited, overlaid by this folder's .description/settings.json.
         var settings = OverlaySettings(inherited, folderPath);
@@ -61,7 +63,7 @@ public sealed class GalleryGenerator
         var thumbsDir = Path.Combine(webDir, "thumbs");
         System.IO.Directory.CreateDirectory(thumbsDir);
 
-        var thumbGen = new ThumbnailGenerator(settings.ThumbnailSize, settings.ThumbnailQuality);
+        var thumbGen = new ThumbnailGenerator(settings.ThumbnailSize, settings.ThumbnailQuality, _force);
 
         // Recurse into subfolders (each its own gallery); collect preview thumbs for tiles.
         var subTiles = new List<GallerySubfolder>();
@@ -74,7 +76,7 @@ public sealed class GalleryGenerator
                 FlattenSubfolderImages = entry.FlattenSubfolderImages,
                 IgnoreSubfolders = entry.IgnoreSubfolders
             };
-            var subPreview = GenerateFolder(sub, subEntry, settings);
+            var subPreview = GenerateFolder(sub, subEntry, settings, isSubfolder: true);
             var subDesc = FolderDescription.TryLoad(sub);
             var subName = Path.GetFileName(sub);
 
@@ -139,7 +141,8 @@ public sealed class GalleryGenerator
                 InitialThumbnails = settings.InitialThumbnails,
                 CacheRadius = settings.CacheRadius
             },
-            GeneratedAt = _generatedAt
+            GeneratedAt = _generatedAt,
+            ParentLink = isSubfolder ? "../../.web/index.html" : null
         };
 
         RenderTemplate(settings.Template, model, webDir);

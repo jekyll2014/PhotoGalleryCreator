@@ -12,6 +12,8 @@ public sealed class GalleryModel
     public required List<GallerySubfolder> Subfolders { get; init; }
     public required GallerySettings Settings { get; init; }
     public string GeneratedAt { get; init; } = "";
+    /// <summary>Relative URL to the parent gallery's index.html. Null for root-level folders.</summary>
+    public string? ParentLink { get; init; }
 }
 
 public sealed class GalleryFolder

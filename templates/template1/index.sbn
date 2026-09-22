@@ -8,6 +8,7 @@
 </head>
 <body>
   <header class="gallery-header">
+    {{ if parent_link }}<a class="back-link" href="{{ parent_link }}">&#8592; Back</a>{{ end }}
     <h1>{{ folder.title }}</h1>
     {{ if folder.description }}<p class="folder-desc">{{ folder.description }}</p>{{ end }}
   </header>

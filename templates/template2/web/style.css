@@ -20,6 +20,8 @@ body {
 .gallery-header { padding: 16px 20px 4px; }
 .gallery-header h1 { margin: 0; font-size: 1.3rem; font-weight: 600; }
 .folder-desc { margin: 4px 0 0; color: var(--muted); }
+.back-link { display: inline-block; margin-bottom: 6px; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+.back-link:hover { color: var(--fg); }
 
 /* ---- Subfolder cards ---- */
 .folders {
