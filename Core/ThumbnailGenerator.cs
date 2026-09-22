@@ -12,11 +12,13 @@ public sealed class ThumbnailGenerator
 {
     private readonly int _longEdge;
     private readonly int _quality;
+    private readonly bool _force;
 
-    public ThumbnailGenerator(int longEdge, int quality)
+    public ThumbnailGenerator(int longEdge, int quality, bool force = false)
     {
         _longEdge = Math.Max(16, longEdge);
         _quality = Math.Clamp(quality, 1, 100);
+        _force = force;
     }
 
     /// <summary>
@@ -32,7 +34,7 @@ public sealed class ThumbnailGenerator
         var info = Image.Identify(sourcePath);
         int width = info.Width, height = info.Height;
 
-        if (IsUpToDate(sourcePath, thumbPath))
+        if (!_force && IsUpToDate(sourcePath, thumbPath))
             return (width, height);
 
         using var image = Image.Load(sourcePath);

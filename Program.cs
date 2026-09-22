@@ -4,9 +4,9 @@ using PhotoGalleryCreator.Models;
 // pgc — Photo Gallery Creator. Static HTML gallery builder for disk folders.
 //
 // Usage:
-//   pgc generate [--config <settings.json>]   Build galleries for the configured folders.
-//   pgc init     [--config <settings.json>]   Write a sample settings.json to get started.
-//   pgc help                                  Show this help.
+//   pgc generate [--config <settings.json>] [--force]   Build galleries for the configured folders.
+//   pgc init     [--config <settings.json>]             Write a sample settings.json to get started.
+//   pgc help                                            Show this help.
 //
 // With no command, "generate" is assumed. Default config path is ./settings.json.
 
@@ -31,7 +31,7 @@ static class Cli
                     return Init(config);
 
                 case "generate" or "":
-                    return Generate(config);
+                    return Generate(config, options.ContainsKey("force"));
 
                 default:
                     Console.Error.WriteLine($"Unknown command: {command}");
@@ -46,7 +46,7 @@ static class Cli
         }
     }
 
-    static int Generate(string config)
+    static int Generate(string config, bool force = false)
     {
         if (!File.Exists(config))
         {
@@ -69,7 +69,8 @@ static class Cli
         }
 
         Console.WriteLine($"Templates: {templatesRoot}");
-        new GalleryGenerator(settings, templatesRoot).Run();
+        if (force) Console.WriteLine("Force mode: regenerating all thumbnails.");
+        new GalleryGenerator(settings, templatesRoot, force).Run();
         Console.WriteLine("Done.");
         return 0;
     }
@@ -122,6 +123,10 @@ static class Cli
             {
                 if (i + 1 < args.Length) options["config"] = args[++i];
             }
+            else if (a is "--force" or "-f")
+            {
+                options["force"] = "1";
+            }
             else if (a.StartsWith("--") && a.Contains('='))
             {
                 var kv = a[2..].Split('=', 2);
@@ -136,9 +141,11 @@ static class Cli
         """
         pgc — Photo Gallery Creator (static HTML galleries for disk folders)
 
-          pgc generate [--config <settings.json>]   Build galleries (default command)
-          pgc init     [--config <settings.json>]   Write a starter settings.json
-          pgc help                                  This help
+          pgc generate [--config <settings.json>] [--force|-f]   Build galleries (default command)
+          pgc init     [--config <settings.json>]                Write a starter settings.json
+          pgc help                                               This help
+
+          --force / -f   Regenerate all thumbnails even if they appear up to date.
 
         Output for each folder lands in <folder>/.web/ (index.html, web/, thumbs/).
         """);
